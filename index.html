@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Music Player</title>
+    <meta name="description" content="Ad-Free Music Player with High Quality MP3 Songs and Metadata support">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== VARIABLES ===== */
+        :root {
+            /* Light Mode Defaults */
+            --primary-color: #4361ee;
+            --primary-dark: #3a0ca3;
+            --primary-light: #4895ef;
+            --secondary-color: #f72585;
+            --text-dark: #2b2d42;
+            --text-medium: #4a4e69;
+            --text-light: #8e9aaf;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --card-bg: #ffffff;
+            --player-bg: #ffffff;
+            --success-color: #4cc9f0;
+            --error-color: #ef233c;
+            --border-color: rgba(0, 0, 0, 0.1);
+
+            /* Spacing */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+
+            /* Typography */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 2rem;
+
+            /* Effects */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --border-radius: 12px;
+        }
+
+        /* ===== DARK MODE OVERRIDES ===== */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-dark: #f8f9fa;
+                --text-medium: #e9ecef;
+                --text-light: #adb5bd;
+                --bg-light: #121212;
+                --bg-white: #1e1e1e;
+                --card-bg: #2d2d2d;
+                --player-bg: #252525;
+                --border-color: rgba(255, 255, 255, 0.1);
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+                --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* ===== BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            transition: background-color var(--transition-normal);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ===== LAYOUT ===== */
+        .music-app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ===== HEADER STYLES ===== */
+        .app-header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 80px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            color: #0f3460;
+        }
+
+        .header-wave svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Animated background elements */
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(76, 201, 240, 0.1) 0%, transparent 70%);
+            animation: float 15s infinite linear;
+            z-index: 1;
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.02)" d="M0,0 L100,0 L100,100 L0,100 Z" /></svg>');
+            background-size: 20px 20px;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(-5%, 5%);
+            }
+
+            50% {
+                transform: translate(5%, 10%);
+            }
+
+            75% {
+                transform: translate(-5%, 5%);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .logo-text {
+                font-size: 2rem;
+            }
+
+            .tagline {
+                font-size: 1.25rem;
+            }
+
+            .subtext {
+                font-size: 0.9rem;
+            }
+
+            .logo-icon {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-container {
+                flex-direction: column;
+            }
+
+            .logo-icon {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+
+            .logo-text {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Main Content */
+        .app-main {
+            flex: 1;
+            padding: var(--space-lg);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: var(--space-xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            align-items: center;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #search-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 6;
+            display: flex;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        #saavn-search-box {
+            flex: 1;
+            padding: var(--space-md) 25px;
+            border: none;
+            font-size: var(--text-base);
+            outline: none;
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            border-radius: 45px 0 0 45px;
+        }
+
+        #saavn-search-trigger {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 var(--space-lg);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            border-radius: 0 45px 45px 0;
+        }
+
+        #saavn-search-trigger:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Quality Selector */
+        .quality-selector {
+            flex: 1;
+            max-width: 800px;
+            display: flex;
+            justify-content: flex-end;
+            height: 50px;
+            margin-left: 10px;
+        }
+
+        .quality-dropdown {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            font-size: var(--text-sm);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+        }
+
+
+        @media (max-width: 576px) {
+            #search-form {
+                display: block;
+                text-align: center;
+            }
+
+            .quality-selector {
+                display: block;
+                margin-top: var(--space-md);
+            }
+
+            .quality-dropdown {
+                height: 50px;
+            }
+        }
+
+        /* ===== HORIZONTAL TILE LAYOUT ===== */
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+        }
+
+        .song-container {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: var(--space-md);
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+            overflow: hidden;
+        }
+
+        .song-container:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .song-image-container {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .song-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform var(--transition-normal);
+        }
+
+        .song-container:hover .song-image {
+            transform: scale(1.05);
+        }
+
+        .song-details {
+            padding: var(--space-sm) var(--space-sm) var(--space-sm) 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .song-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-xs);
+        }
+
+        .song-title {
+            font-size: var(--text-base);
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: var(--space-xs);
+        }
+
+        .song-artist {
+            font-size: var(--text-xs);
+            color: var(--text-medium);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .song-duration {
+            font-size: var(--text-xs);
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .song-actions {
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .play-btn:hover,
+        .download-btn:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .play-btn i,
+        .download-btn i {
+            font-size: 0.8rem;
+        }
+
+        /* Player Footer */
+        .player-footer {
+            background-color: var(--player-bg);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            padding: var(--space-md);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .player-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-right: 80px;
+        }
+
+        .player-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-weight: 600;
+            font-size: var(--text-base);
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-album {
+            font-size: var(--text-sm);
+            color: var(--text-light);
+        }
+
+        #player {
+            width: 100%;
+            border-radius: var(--border-radius);
+            filter: brightness(0.95);
+        }
+
+        /* Utility Classes */
+        .load-more-btn {
+            display: block;
+            margin: var(--space-xl) auto;
+            padding: var(--space-md) var(--space-xl);
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            font-weight: 600;
+        }
+
+        .load-more-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .loader,
+        .error {
+            display: block;
+            text-align: center;
+            padding: var(--space-xl);
+            font-size: var(--text-lg);
+        }
+
+        .error {
+            color: var(--error-color);
+        }
+
+        /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        @media (max-width: 1200px) {
+            .results-container {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            .results-container {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-main {
+                padding: var(--space-md);
+            }
+
+            .results-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+        }
+
+        @media (max-width: 576px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+
+            .song-details {
+                padding-right: var(--space-xs);
+            }
+
+            .play-btn,
+            .download-btn {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="music-app">
+        <header class="app-header">
+            <div class="header-container">
+                <div class="header-wave">
+                    <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                        <path
+                            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                            opacity=".25" fill="currentColor"></path>
+                        <path
+                            d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                            opacity=".5" fill="currentColor"></path>
+                        <path
+                            d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                            fill="currentColor"></path>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-container">
+                    <form id="search-form">
+                        <div class="search-box">
+                            <input type="text" id="saavn-search-box" placeholder="Search songs, artists or albums">
+                            <button type="submit" id="saavn-search-trigger">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="quality-selector">
+                            <select id="saavn-bitrate" class="quality-dropdown">
+                                <option value="4" selected>320kbps</option>
+                                <option value="3">160kbps</option>
+                                <option value="2">96kbps</option>
+                                <option value="1">48kbps</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section">
+                <div id="saavn-results" class="results-container"></div>
+                <button id="loadmore" class="load-more-btn">Load More</button>
+            </section>
+        </main>
+
+        <!-- Player Section -->
+        <footer class="player-footer">
+            <div class="player-container">
+                <div class="player-info">
+                    <img id="player-image"
+                        src="https://i.pinimg.com/originals/ed/54/d2/ed54d2fa700d36d4f2671e1be84651df.jpg"
+                        alt="Album Art">
+                    <div class="track-info">
+                        <div id="player-name" class="track-title">No song selected</div>
+                        <div id="player-album" class="track-album">Search for music</div>
+                    </div>
+                </div>
+                <audio id="player" controls>
+                    <source id="audioSource" src="" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function PlayAudio(audio_url, song_id) {
+
+            var audio = document.getElementById('player');
+            var source = document.getElementById('audioSource');
+            source.src = audio_url;
+            var name = document.getElementById(song_id + "-n").textContent;
+            var album = document.getElementById(song_id + "-a").textContent;
+            var image = document.getElementById(song_id + "-i").getAttribute("src");
+
+            document.title = name + " - " + album;
+            var bitrate = document.getElementById('saavn-bitrate');
+            var bitrate_i = bitrate.options[bitrate.selectedIndex].value;
+            var quality = "";
+            if (bitrate_i == 4) { quality = 320 } else { quality = 160; }
+
+
+            document.getElementById("player-name").innerHTML = name;
+            document.getElementById("player-album").innerHTML = album;
+            document.getElementById("player-image").setAttribute("src", image);
+
+            var promise = audio.load();
+            if (promise) {
+                //Older browsers may not return a promise, according to the MDN website
+                promise.catch(function (error) { console.error(error); });
+            }//call this to just preload the audio without playing
+            audio.play(); //call this to play the song right away
+        };
+        function searchSong(search_term) {
+
+            document.getElementById('search-box').value = search_term;
+            var goButton = document.getElementById("search-trigger");
+            goButton.click();
+
+        }
+        var DOWNLOAD_API = "https://openmp3compiler.astudy.org"
+        function AddDownload(id) {
+            var bitrate = document.getElementById('saavn-bitrate');
+            var bitrate_i = bitrate.options[bitrate.selectedIndex].value;
+            // MP3 server API
+            var MP3DL = DOWNLOAD_API + "/add?id=" + id;
+            // make api call, if 200, add to download list
+            fetch(MP3DL)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status == "success") {
+                        // add to download list
+                        var download_list = document.getElementById("download-list");
+                        var download_item = document.createElement("li");
+                        download_item.innerHTML = `
+            <div class="col">
+            <img class="track-img" src="${data.image}" width="50px">
+            <div style="display: inline;">
+              <span class="track-name"> ${id}</span> - 
+              <span class="track-album"> ${data.album}</span>
+              <br>
+              <span class="track-size"> Size : Null</span>
+              <span class="track-status"> </span>
+            </div>
+          </div>
+          <hr>
+            `;
+
+                        // set download_item track_tag to song id
+                        download_item.setAttribute("track_tag", id);
+
+                        // set css class no-bullets
+                        download_item.className = "no-bullets";
+
+                        download_list.appendChild(download_item);
+                        // every 5 seconds, check download status
+                        var STATUS_URL = DOWNLOAD_API + "/status?id=" + id;
+                        // get download_status_span by track_tag and class
+                        var download_status_span = document.querySelector('[track_tag="' + id + '"] .track-status');
+                        var download_name = document.querySelector('[track_tag="' + id + '"] .track-name');
+                        var download_album = document.querySelector('[track_tag="' + id + '"] .track-album');
+                        var download_img = document.querySelector('[track_tag="' + id + '"] .track-img');
+                        var download_size = document.querySelector('[track_tag="' + id + '"] .track-size');
+                        // set text content to song name and album name
+
+                        download_name.innerHTML = results_objects[id].track.name;
+                        download_status_span.innerHTML = data.status;
+                        download_album.innerHTML = results_objects[id].track.album.name;
+                        download_img.setAttribute("src", results_objects[id].track.image[2].link);
+
+                        // change mpopupLink background and border color to green and back to blue after 1 second
+                        var float_tap = document.getElementById('mpopupLink');
+                        float_tap.style.backgroundColor = "green";
+                        float_tap.style.borderColor = "green";
+
+                        setTimeout(function () {
+                            float_tap.style.backgroundColor = "#007bff";
+                            float_tap.style.borderColor = "#007bff";
+                        }, 1000);
+
+                        // check status every 5 seconds
+                        var interval = setInterval(function () {
+                            fetch(STATUS_URL)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status) {
+                                        // update status
+                                        download_status_span.textContent = data.status;
+                                        if (data.size) {
+                                            download_size.textContent = "Size: " + data.size;
+                                        }
+                                        if (data.status == "Done") {
+                                            // download complete, add download button
+                                            download_status_span.innerHTML = `<a href="${DOWNLOAD_API}${data.url}" target="_blank">Download MP3</a>`;
+                                            // clear interval
+                                            clearInterval(interval);
+                                            return;
+                                        }
+                                    }
+                                });
+                        }, 3000); // end interval
+                    }
+                });
+        }
+
+    </script>
+    <script>
+        // Initialize variables
+        var results_container = document.querySelector("#saavn-results");
+        var results_objects = {};
+        var lastSearch = "";
+        const searchUrl = "https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=";
+        var page_index = 1;
+
+        // Search form submission handler
+        document.getElementById("search-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var query = document.querySelector("#saavn-search-box").value.trim();
+            if (query.length > 0) {
+                doSaavnSearch(query);
+            }
+        });
+
+        // Search function
+        function doSaavnSearch(query, NotScroll, page) {
+            if (!query) return;
+
+            // Update UI for loading state
+            results_container.innerHTML = `<div class="loader">Searching...</div>`;
+
+            // Prepare query parameters
+            let searchQuery = encodeURIComponent(query) + "&limit=40";
+            if (page) {
+                page_index = page_index + 1;
+                searchQuery = searchQuery + "&page=" + page_index;
+            } else {
+                searchQuery = searchQuery + "&page=1";
+                page_index = 1;
+            }
+
+            // Make API request
+            fetch(searchUrl + searchQuery)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(json => {
+                    // Handle successful response
+                    if (!json.data || !json.data.results) {
+                        throw new Error("No results found");
+                    }
+
+                    processSearchResults(json.data.results, NotScroll);
+                })
+                .catch(error => {
+                    // Handle errors
+                    console.error("Search error:", error);
+                    results_container.innerHTML = `
+        <div class="error">
+          Error: ${error.message || "Failed to fetch results"}<br>
+          Please try again later
+        </div>
+      `;
+                });
+        }
+
+        // Process and display search results
+        function processSearchResults(results, NotScroll) {
+            if (!results || results.length === 0) {
+                results_container.innerHTML = "<p>No results found. Try a different search term.</p>";
+                return;
+            }
+
+            lastSearch = document.querySelector("#saavn-search-box").value.trim();
+            let resultsHTML = [];
+
+            results.forEach(track => {
+                if (!track.downloadUrl) return;
+
+                const song_id = track.id;
+                const song_name = TextAbstract(track.name, 25);
+                const album_name = track.album.name === track.name ? "" : TextAbstract(track.album.name, 20);
+                const play_time = formatDuration(track.duration);
+                const song_image = getHighQualityImage(track.image);
+                const song_artist = TextAbstract(track.primaryArtists, 30);
+                const year = track.year;
+
+                const bitrate = document.getElementById('saavn-bitrate').value;
+                const download_url = track.downloadUrl[bitrate]?.link;
+
+                if (!download_url) return;
+
+                // Store track data
+                results_objects[song_id] = { track: track };
+
+                // Create result HTML
+                resultsHTML.push(`
+<div class="song-container">
+  <div class="song-image-container">
+    <img id="${song_id}-i" class="song-image" src="${song_image}" loading="lazy" alt="${song_name}"/>
+  </div>
+  <div class="song-details">
+    <div class="song-header">
+      <h3 id="${song_id}-n" class="song-title">${song_name}</h3>
+      <span class="song-year">${year}</span>
+    </div>
+    <p id="${song_id}-ar" class="song-artist">${song_artist}</p>
+    <p id="${song_id}-a" class="song-album">${album_name}</p>
+    
+    <div class="song-footer">
+      <span class="song-duration">${play_time}</span>
+      <div class="song-actions">
+        <button class="play-btn" onclick='PlayAudio("${download_url}","${song_id}")'>
+          <i class="fas fa-play"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+    `);
+            });
+
+            // Update results container
+            results_container.innerHTML = resultsHTML.join("");
+
+            // Scroll to results if it's a new search
+            if (!NotScroll) {
+                results_container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Helper function to format duration
+        function formatDuration(seconds) {
+            const date = new Date(null);
+            date.setSeconds(seconds);
+            let timeString = date.toISOString().substr(11, 8);
+
+            // Remove unnecessary leading zeros
+            if (timeString.startsWith("00:0")) {
+                timeString = timeString.slice(4);
+            } else if (timeString.startsWith("00:")) {
+                timeString = timeString.slice(3);
+            }
+
+            return timeString;
+        }
+
+        // Helper function to shorten text
+        function TextAbstract(text, length) {
+            if (!text) return "";
+            if (text.length <= length) return text;
+
+            text = text.substring(0, length);
+            const last = text.lastIndexOf(" ");
+            return text.substring(0, last) + "...";
+        }
+
+        function getHighQualityImage(imagesArray) {
+            // Try to get the highest quality available (500x500)
+            const highQuality = imagesArray.find(img => img.quality === '500x500');
+            if (highQuality) return highQuality.link;
+
+            // Fallback to the last image (usually highest quality in the array)
+            return imagesArray[imagesArray.length - 1].link;
+
+            // Alternative fallback if structure is different:
+            // return imagesArray[0].link.replace('150x150', '500x500');
+        }
+
+        // Load more results
+        function nextPage() {
+            const query = document.querySelector("#saavn-search-box").value.trim() || lastSearch;
+            if (query) {
+                doSaavnSearch(query, true, true);
+            }
+        }
+
+        // Initialize search if hash exists
+        if (window.location.hash) {
+            const hashQuery = window.location.hash.substring(1);
+            document.querySelector("#saavn-search-box").value = decodeURIComponent(hashQuery);
+            doSaavnSearch(hashQuery);
+        } else {
+            // Default search
+            doSaavnSearch('trending', true);
+        }
+
+        // Handle hash changes
+        window.addEventListener('hashchange', () => {
+            const hashQuery = window.location.hash.substring(1);
+            document.querySelector("#saavn-search-box").value = decodeURIComponent(hashQuery);
+            doSaavnSearch(hashQuery);
+        });
+
+        // Bitrate change handler
+        document.getElementById('saavn-bitrate').addEventListener('change', function () {
+            if (lastSearch) {
+                doSaavnSearch(lastSearch);
+            }
+        });
+
+        // Load more button
+        document.getElementById("loadmore").addEventListener('click', nextPage);
+    </script>
+</body>
+
+</html>
